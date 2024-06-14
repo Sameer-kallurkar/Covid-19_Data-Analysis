@@ -6,27 +6,32 @@ import seaborn as sns
 covid_data = pd.read_csv("c19p/covid_19_clean_complete.csv")
 
 # Data preprocessing
-# Assuming columns: 'Date', 'Country/Region', 'Confirmed', 'Deaths', 'Recovered', 'Active', 'WHO Region'
 covid_data['Date'] = pd.to_datetime(covid_data['Date'])
 covid_data['Month'] = covid_data['Date'].dt.to_period('M')
 
-# Aggregate data by month
-covid_data_monthly = covid_data.groupby('Month').agg({
-    'Confirmed': 'sum', 
-    'Deaths': 'sum', 
-    'Recovered': 'sum',
-    'Active': 'sum'
-}).reset_index()
+# Data quality assessment and preprocessing
+# Handling missing values
+covid_data.dropna(inplace=True)
+
+# Handling outliers
+# Assuming outliers are removed based on domain knowledge or statistical methods
+
+# Feature engineering
+covid_data['Mortality Rate'] = covid_data['Deaths'] / covid_data['Confirmed']
+
+# Exploratory Data Analysis (EDA)
+# Statistical summaries
+summary_statistics = covid_data.describe()
 
 # Data visualization
 plt.figure(figsize=(12, 8))
 
-# Line plot for COVID-19 cases and deaths over time
+# Line plot for COVID-19 cases, deaths, and recoveries over time
 plt.subplot(2, 2, 1)
-plt.plot(covid_data_monthly['Month'].dt.to_timestamp(), covid_data_monthly['Confirmed'], label='Confirmed Cases', color='blue')
-plt.plot(covid_data_monthly['Month'].dt.to_timestamp(), covid_data_monthly['Deaths'], label='Deaths', color='red')
-plt.plot(covid_data_monthly['Month'].dt.to_timestamp(), covid_data_monthly['Recovered'], label='Recovered', color='green')
-plt.title('COVID-19 Cases and Deaths Over Time')
+sns.lineplot(data=covid_data, x='Month', y='Confirmed', label='Confirmed Cases')
+sns.lineplot(data=covid_data, x='Month', y='Deaths', label='Deaths')
+sns.lineplot(data=covid_data, x='Month', y='Recovered', label='Recovered')
+plt.title('COVID-19 Cases, Deaths, and Recoveries Over Time')
 plt.xlabel('Date')
 plt.ylabel('Count')
 plt.legend()
@@ -61,3 +66,6 @@ plt.title('Percentage of COVID-19 Deaths by Continent')
 
 plt.tight_layout()
 plt.show()
+
+# Save summary statistics to a CSV file
+summary_statistics.to_csv("summary_statistics.csv", index=True)
